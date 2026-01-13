@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>NetGuardian Login</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #1a1a1a; display: flex; justify-content: center; align-items: center; height: 100vh; color: white; margin: 0; }
+        .login-box { background: #2d2d2d; padding: 40px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.5); text-align: center; width: 300px; }
+        h1 { margin-bottom: 20px; font-weight: 300; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: none; border-radius: 5px; background: #3d3d3d; color: white; }
+        button { width: 100%; padding: 10px; background: #007bff; border: none; border-radius: 5px; color: white; cursor: pointer; font-size: 16px; margin-top: 10px; }
+        button:hover { background: #0056b3; }
+        .error { color: #ff6b6b; margin-top: 10px; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <h1>NetGuardian 🛡️</h1>
+        <form method="post">
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
+    </div>
+</body>
+</html>

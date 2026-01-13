@@ -1,0 +1,7 @@
+flask
+matplotlib
+scapy
+speedtest-cli
+fpdf
+requests
+psutil
