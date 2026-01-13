@@ -9,10 +9,9 @@
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <style>
         :root {
-            --primary: #00e676;
-            --bg-color: #0f111a;
-            --glass: rgba(255, 255, 255, 0.05);
-            --border: rgba(255, 255, 255, 0.1);
+            --primary: #00ff41;
+            /* classic matrix green */
+            --bg-color: #000000;
         }
 
         body {
@@ -20,10 +19,6 @@
             padding: 0;
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-color);
-            background-image:
-                linear-gradient(rgba(0, 230, 118, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 230, 118, 0.03) 1px, transparent 1px);
-            background-size: 40px 40px;
             height: 100vh;
             display: flex;
             align-items: center;
@@ -32,27 +27,25 @@
             position: relative;
         }
 
-        /* Subtle Glow in Center */
-        body::before {
-            content: '';
+        /* MATRIX CANVAS */
+        #matrix-canvas {
             position: absolute;
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, rgba(0, 230, 118, 0.08) 0%, transparent 70%);
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             z-index: 0;
         }
 
         .login-card {
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            background: rgba(0, 20, 0, 0.85);
+            /* Dark Green Tint */
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             padding: 50px 40px;
             border-radius: 20px;
-            border: 1px solid var(--border);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--primary);
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.2);
             width: 100%;
             max-width: 380px;
             z-index: 1;
@@ -61,23 +54,21 @@
         }
 
         .login-card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(0, 230, 118, 0.3);
+            transform: scale(1.02);
+            box-shadow: 0 0 50px rgba(0, 255, 65, 0.4);
         }
 
         .logo {
             font-size: 2rem;
-            color: white;
+            color: var(--primary);
             font-weight: 700;
             margin-bottom: 30px;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
-        }
-
-        .logo i {
-            color: var(--primary);
+            text-shadow: 0 0 10px var(--primary);
+            font-family: 'Courier New', monospace;
         }
 
         .form-group {
@@ -88,10 +79,11 @@
 
         .form-group label {
             display: block;
-            color: #a0aec0;
+            color: #00e676;
             font-size: 0.85rem;
             margin-bottom: 8px;
-            font-weight: 500;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
         }
 
         .input-wrapper {
@@ -103,84 +95,77 @@
             left: 15px;
             top: 50%;
             transform: translateY(-50%);
-            color: #718096;
+            color: var(--primary);
             transition: 0.3s;
         }
 
         input {
             width: 100%;
             padding: 14px 14px 14px 45px;
-            /* Space for icon */
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            color: white;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #333;
+            border-radius: 5px;
+            color: var(--primary);
             font-size: 1rem;
             box-sizing: border-box;
             transition: 0.3s;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Courier New', monospace;
         }
 
         input:focus {
             outline: none;
             border-color: var(--primary);
-            background: rgba(0, 0, 0, 0.5);
-            box-shadow: 0 0 0 4px rgba(0, 230, 118, 0.1);
-        }
-
-        input:focus+i {
-            color: var(--primary);
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
         }
 
         .btn-login {
             width: 100%;
             padding: 14px;
-            background: linear-gradient(135deg, #00e676 0%, #00b359 100%);
-            color: #000;
+            background: #000;
+            color: var(--primary);
             font-weight: 700;
-            border: none;
-            border-radius: 12px;
+            border: 1px solid var(--primary);
+            border-radius: 5px;
             font-size: 1rem;
             cursor: pointer;
             transition: 0.3s;
             margin-top: 20px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 2px;
+            font-family: 'Courier New', monospace;
         }
 
         .btn-login:hover {
-            opacity: 0.9;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0, 230, 118, 0.2);
+            background: var(--primary);
+            color: black;
+            box-shadow: 0 0 20px var(--primary);
         }
 
         .error-msg {
             color: #ff5252;
-            background: rgba(255, 82, 82, 0.1);
+            background: rgba(255, 0, 0, 0.1);
             padding: 10px;
-            border-radius: 8px;
-            font-size: 0.9rem;
+            font-family: monospace;
+            border: 1px solid #ff5252;
             margin-bottom: 20px;
-            border: 1px solid rgba(255, 82, 82, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
         }
 
         footer {
             margin-top: 30px;
-            color: #4a5568;
+            color: #005500;
             font-size: 0.8rem;
+            font-family: monospace;
         }
     </style>
 </head>
 
 <body>
 
+    <canvas id="matrix-canvas"></canvas>
+
     <div class="login-card">
         <div class="logo">
-            <i class="ri-shield-check-fill"></i> NetGuardian
+            <i class="ri-terminal-box-fill"></i> NetGuardian
         </div>
 
         {% if error %}
@@ -191,30 +176,75 @@
 
         <form method="POST">
             <div class="form-group">
-                <label>Identifiant</label>
+                <label>IDENTIFIANT</label>
                 <div class="input-wrapper">
-                    <input type="text" name="username" placeholder="Entrez votre identifiant" required
-                        autocomplete="off">
+                    <input type="text" name="username" placeholder="admin" required autocomplete="off">
                     <i class="ri-user-3-line"></i>
                 </div>
             </div>
 
             <div class="form-group">
-                <label>Mot de passe</label>
+                <label>MOT DE PASSE</label>
                 <div class="input-wrapper">
-                    <input type="password" name="password" placeholder="Entrez votre mot de passe" required>
+                    <input type="password" name="password" placeholder="•••••" required>
                     <i class="ri-lock-password-line"></i>
                 </div>
             </div>
 
-            <button type="submit" class="btn-login">Se Connecter</button>
+            <button type="submit" class="btn-login">ACCÉDER AU SYSTÈME</button>
         </form>
 
         <footer>
-            Système d'Accès Sécurisé V3.0
+            MATRICE DE SÉCURITÉ V3.0
         </footer>
     </div>
 
+    <script>
+        const canvas = document.getElementById('matrix-canvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const katakana = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン';
+        const latin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const nums = '0123456789';
+        const alphabet = katakana + latin + nums;
+
+        const fontSize = 16;
+        const columns = canvas.width / fontSize;
+
+        const rainDrops = [];
+
+        for (let x = 0; x < columns; x++) {
+            rainDrops[x] = 1;
+        }
+
+        const draw = () => {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#0F0';
+            ctx.font = fontSize + 'px monospace';
+
+            for (let i = 0; i < rainDrops.length; i++) {
+                const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+                ctx.fillText(text, i * fontSize, rainDrops[i] * fontSize);
+
+                if (rainDrops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    rainDrops[i] = 0;
+                }
+                rainDrops[i]++;
+            }
+        };
+
+        setInterval(draw, 30);
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
 </body>
 
 </html>
