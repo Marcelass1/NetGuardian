@@ -524,6 +524,7 @@
     </style>
     <script>
         let bandwidthChart;
+        let lastResultData = null; // Store last scan result for reporting
 
         async function update() {
             let res = await fetch('/api/status');
@@ -612,7 +613,6 @@
         function initChart() {
             const ctx = document.getElementById('bandwidthChart').getContext('2d');
 
-            // Gradient fill
             let gradient = ctx.createLinearGradient(0, 0, 0, 200);
             gradient.addColorStop(0, 'rgba(33, 150, 243, 0.4)');
             gradient.addColorStop(1, 'rgba(33, 150, 243, 0)');
@@ -646,9 +646,8 @@
                 }
             });
 
-            // Simul Loop
             setInterval(() => {
-                const newData = Math.floor(Math.random() * (80 - 20) + 20); // Random 20-80 Mbps
+                const newData = Math.floor(Math.random() * (80 - 20) + 20); // Random
                 bandwidthChart.data.datasets[0].data.push(newData);
                 bandwidthChart.data.datasets[0].data.shift();
                 bandwidthChart.update();
@@ -698,7 +697,7 @@
 
         function showResultModal(title, content) {
             document.getElementById('resTitle').innerText = title;
-            document.getElementById('resContent').innerHTML = content; // Changed to innerHTML for formatting
+            document.getElementById('resContent').innerHTML = content;
             document.getElementById('resultModal').style.display = 'flex';
         }
         function closeResultModal() { document.getElementById('resultModal').style.display = 'none'; }
@@ -723,6 +722,33 @@
             document.getElementById('inputModal').style.display = 'none';
         }
 
+        async function generateAuditReport() {
+            if (!lastResultData) return alert("Aucune donnée d'audit disponible.");
+
+            // Show loading state on button
+            const btn = document.getElementById('genReportBtn');
+            const originalText = btn.innerText;
+            btn.innerText = 'Génération...';
+
+            try {
+                let res = await fetch('/api/report/audit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(lastResultData)
+                });
+                let data = await res.json();
+                if (data.url) {
+                    window.open(data.url, '_blank');
+                } else {
+                    alert('Erreur de génération');
+                }
+            } catch (e) {
+                alert('Erreur: ' + e);
+            } finally {
+                btn.innerText = originalText;
+            }
+        }
+
         async function run(url, name) {
             let body = null;
             if (url.includes('ports') || url.includes('vuln')) {
@@ -738,8 +764,8 @@
                     method: body ? 'POST' : 'GET', headers: { 'Content-Type': 'application/json' }, body: body
                 });
                 let data = await res.json();
+                lastResultData = data; // Save for report generation
 
-                // FORMATTER LOGIC
                 let content = '';
 
                 if (Array.isArray(data) && data.length > 0 && data[0].mac) {
@@ -779,8 +805,34 @@
                         </div>
                      </div>`;
 
+                } else if (data.grade && data.vulnerabilities) {
+                    // VULNERABILITY AUDIT
+                    let color = data.grade === 'A' ? '#00e676' : data.grade === 'B' ? '#ff9100' : '#ff5252';
+                    content = `<div style="text-align:center; padding-bottom:20px; border-bottom:1px solid #333; margin-bottom:20px">
+                        <div style="font-size:3rem; font-weight:bold; color:${color}">${data.grade}</div>
+                        <div style="color:#aaa; font-size:0.9rem">NOTE DE SÉCURITÉ (${data.score}/100)</div>
+                    </div>`;
+
+                    content += `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <h4 style="margin:0">Vulnérabilités Détectées</h4>
+                        <button id="genReportBtn" onclick="generateAuditReport()" class="btn-primary" style="padding:6px 12px; font-size:0.8rem">
+                            <i class="ri-file-pdf-fill"></i> Générer Rapport
+                        </button>
+                    </div>`;
+
+                    if (data.vulnerabilities.length === 0) {
+                        content += `<div style="color:var(--primary); text-align:center; padding:20px">Aucune vulnérabilité critique.</div>`;
+                    } else {
+                        data.vulnerabilities.forEach(v => {
+                            content += `<div style="background:rgba(255,82,82,0.1); border-left:4px solid var(--danger); padding:10px 15px; margin-bottom:10px; border-radius:4px;">
+                                <div style="font-weight:bold; color:white;">PORT ${v.port}</div>
+                                <div style="color:#ddd; font-size:0.9rem">${v.issue}</div>
+                             </div>`;
+                        });
+                    }
+
                 } else if (Array.isArray(data) && data.length > 0 && data[0].port) {
-                    // PORT SCANNER (Assuming list of ports)
+                    // PORT SCANNER
                     content += `<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap:10px;">`;
                     data.forEach(p => {
                         content += `<div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; border:1px solid var(--glass-border); text-align:center;">

@@ -126,3 +126,74 @@ def generate_weekly_report(stats):
     path = os.path.join(os.getcwd(), filename)
     pdf.output(path)
     return filename
+
+def generate_audit_report(scan_data):
+    if FPDF is None: return None
+    
+    filename = f"Audit_Securite_{scan_data.get('ip', 'target').replace('.', '-')}_{datetime.now().strftime('%H%M')}.pdf"
+    pdf = ProReport()
+    pdf.add_page()
+    
+    # --- HEADER ---
+    pdf.chapter_title(f"AUDIT CIBLE: {scan_data.get('ip', 'N/A')}")
+    
+    score_color = (0, 204, 102) # Green
+    if scan_data.get('score', 0) < 50: score_color = (255, 50, 50) # Red
+    elif scan_data.get('score', 0) < 80: score_color = (255, 165, 0) # Orange
+    
+    pdf.set_font('Arial', 'B', 16)
+    pdf.set_text_color(*score_color)
+    pdf.cell(0, 10, f"NOTE GLOBALE: {scan_data.get('grade', 'N/A')} ({scan_data.get('score', 0)}/100)", 0, 1, 'C')
+    pdf.ln(10)
+
+    # --- VULNERABILITIES ---
+    pdf.chapter_title('DÉTAILS DES VULNÉRABILITÉS')
+    
+    vulns = scan_data.get('vulnerabilities', [])
+    if not vulns:
+        pdf.set_text_color(0, 128, 0)
+        pdf.cell(0, 10, "Aucune vulnérabilité critique détectée.", 0, 1)
+    else:
+        # Tips Database
+        TIPS = {
+            21: "Le protocole FTP n'est pas chiffré. Utilisez SFTP ou FTPS.",
+            22: "Assurez-vous que SSH utilise des clés et non des mots de passe. Changez le port par défaut.",
+            23: "Telnet est obsolète et non sécurisé. Migrez impérativement vers SSH.",
+            80: "Le trafic HTTP est en clair. Installez un certificat SSL/TLS (HTTPS).",
+            445: "SMB est une cible privilégiée pour les ransomwares. Bloquez le port 445 depuis Internet.",
+            3306: "La base de données ne devrait pas être exposée publiquement. Utilisez un VPN ou Tunnel SSH."
+        }
+        
+        pdf.set_font('Arial', '', 10)
+        for v in vulns:
+            port = v.get('port', 0)
+            issue = v.get('issue', 'Unknown')
+            
+            # Box
+            pdf.set_fill_color(245, 245, 245)
+            pdf.set_text_color(0, 0, 0)
+            pdf.rect(pdf.get_x(), pdf.get_y(), 190, 25, 'F')
+            
+            # Content
+            pdf.set_font('Arial', 'B', 11)
+            pdf.cell(15, 8, f"PORT {port}", 0, 0)
+            pdf.set_font('Arial', '', 11)
+            pdf.cell(0, 8, f" - {issue}", 0, 1)
+            
+            # Tip
+            pdf.set_text_color(100, 100, 100)
+            pdf.set_font('Arial', 'I', 9)
+            tip = TIPS.get(port, "Vérifiez la configuration de ce service et limitez son accès.")
+            pdf.multi_cell(0, 5, f"CONSEIL: {tip}")
+            pdf.ln(5)
+
+    pdf.ln(10)
+    
+    # --- FOOTER SIGNATURE ---
+    pdf.set_text_color(0,0,0)
+    pdf.set_font('Arial', '', 10)
+    pdf.cell(0, 10, "Rapport généré automatiquement par NetGuardian Pro.", 0, 1, 'C')
+
+    path = os.path.join(os.getcwd(), filename)
+    pdf.output(path)
+    return filename
