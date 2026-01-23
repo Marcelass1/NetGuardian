@@ -281,7 +281,8 @@
             border: 1px solid var(--border);
             background: #0f111a;
             color: white;
-            box-sizing: border-box; /* Fix padding issue */
+            box-sizing: border-box;
+            /* Fix padding issue */
         }
 
         .modal-actions {
@@ -315,20 +316,20 @@
                 </div>`;
             });
         }
-        
+
         async function addHost() {
             const name = document.getElementById('hName').value;
             const ip = document.getElementById('hIp').value;
-            
-            if(!name || !ip) return alert("Remplir tous les champs");
-            
+
+            if (!name || !ip) return alert("Remplir tous les champs");
+
             let res = await fetch('/api/host', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({name: name, ip: ip})
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: name, ip: ip })
             });
-            
-            if(res.ok) {
+
+            if (res.ok) {
                 closeModal();
                 update();
                 document.getElementById('hName').value = '';
@@ -339,7 +340,7 @@
         }
 
         async function deleteHost(id) {
-            if(!confirm("Supprimer cet hôte ?")) return;
+            if (!confirm("Supprimer cet hôte ?")) return;
             await fetch('/api/host/' + id, { method: 'DELETE' });
             update();
         }
@@ -388,14 +389,24 @@
             <div class="section-title">ÉTAT DU SYSTÈME</div>
             <button class="btn-primary" onclick="showModal()"><i class="ri-add-line"></i> Ajouter Hôte</button>
         </div>
-        
+
         <div class="status-grid" id="grid">
             <!-- Filled by JS -->
         </div>
 
         <!-- TOOLS -->
         <div class="section-title" style="margin-bottom: 20px;">OUTILS D'ADMINISTRATION</div>
+        <div class="test-class"></div>
         <div class="tools-grid">
+            <!-- NEW NETWORK MAP BUTTON -->
+            <a href="/map" style="text-decoration:none; color:inherit;">
+                <div class="tool-card">
+                    <i class="ri-map-2-fill tool-icon" style="color:#2196f3"></i>
+                    <div class="tool-title">Cartographie</div>
+                    <div class="tool-desc">Visualiser le Réseau</div>
+                </div>
+            </a>
+
             <div class="tool-card" onclick="run('/api/scan/arp', 'Scan Réseau ARP')">
                 <i class="ri-radar-fill tool-icon"></i>
                 <div class="tool-title">Scan Réseau</div>
@@ -447,7 +458,8 @@
                 <input type="text" id="hIp" placeholder="IP (ex: 192.168.1.50)">
             </div>
             <div class="modal-actions">
-                <button onclick="closeModal()" style="background:none; border:1px solid #555; color:white; padding:8px 16px; border-radius:6px; cursor:pointer;">Annuler</button>
+                <button onclick="closeModal()"
+                    style="background:none; border:1px solid #555; color:white; padding:8px 16px; border-radius:6px; cursor:pointer;">Annuler</button>
                 <button class="btn-primary" onclick="addHost()">Enregistrer</button>
             </div>
         </div>

@@ -129,6 +129,12 @@ def delete_host(host_id):
     database.delete_host(host_id)
     return jsonify({"message": "Host deleted"}), 200
 
+@app.route('/map')
+def network_map():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    return render_template('network_map.html')
+
 @app.route('/api/health')
 def api_health():
     return jsonify(engine.get_server_health())

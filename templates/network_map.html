@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <title>Carte Réseau - NetGuardian</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f111a;
+            color: white;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .header {
+            padding: 20px;
+            border-bottom: 1px solid #2d3248;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1a1d2d;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .back-btn {
+            background: #2d3248;
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+
+        .back-btn:hover {
+            background: #3d4260;
+        }
+
+        #mynetwork {
+            flex-grow: 1;
+            width: 100%;
+            background: radial-gradient(circle at center, #1f2336 0%, #0f111a 100%);
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5rem;
+            color: #00e676;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <h1><i class="ri-map-pin-line"></i> Cartographie Réseau</h1>
+        <div style="display:flex; gap:10px">
+            <button onclick="loadGraph()" class="back-btn" style="border:none; cursor:pointer"><i
+                    class="ri-refresh-line"></i> Rafraîchir</button>
+            <a href="/" class="back-btn"><i class="ri-arrow-left-line"></i> Retour</a>
+        </div>
+    </div>
+
+    <div id="mynetwork"></div>
+    <div id="loader" class="loading">Scan en cours...</div>
+
+    <script type="text/javascript">
+        async function loadGraph() {
+            document.getElementById('loader').style.display = 'block';
+
+            try {
+                // Fetch ARP data
+                let res = await fetch('/api/scan/arp');
+                let devices = await res.json();
+
+                // Nodes & Edges
+                let nodes = [];
+                let edges = [];
+
+                // Central Node (You/Router)
+                nodes.push({ id: 'GW', label: 'Gateway\n(Router)', shape: 'image', image: 'https://cdn-icons-png.flaticon.com/512/3631/3631553.png', size: 40 });
+
+                devices.forEach((d, index) => {
+                    let label = d.ip + "\n" + (d.vendor || "Unknown");
+                    let id = index + 1;
+
+                    // Specific icon for Raspberry Pi or others if detected
+                    let img = 'https://cdn-icons-png.flaticon.com/512/2885/2885453.png'; // PC icon
+                    if (d.vendor && d.vendor.includes("Raspberry")) img = 'https://cdn-icons-png.flaticon.com/512/3559/3559818.png';
+
+                    nodes.push({ id: id, label: label, shape: 'image', image: img });
+                    edges.push({ from: 'GW', to: id });
+                });
+
+                // Create Network
+                let container = document.getElementById('mynetwork');
+                let data = { nodes: nodes, edges: edges };
+                let options = {
+                    nodes: {
+                        font: { color: '#ffffff' },
+                        borderWidth: 2,
+                        color: { border: '#00e676', background: '#1a1d2d' }
+                    },
+                    edges: { color: '#2d3248', width: 2 },
+                    physics: { stabilization: true }
+                };
+
+                new vis.Network(container, data, options);
+
+            } catch (e) {
+                alert("Erreur lors du scan: " + e);
+            } finally {
+                document.getElementById('loader').style.display = 'none';
+            }
+        }
+
+        window.onload = loadGraph;
+    </script>
+</body>
+
+</html>
