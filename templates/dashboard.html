@@ -23,43 +23,43 @@
             /* Neon Blue */
             --text-main: #ffffff;
             --text-sub: #94a3b8;
+            --sidebar-width: 280px;
         }
 
         body {
             font-family: 'Inter', sans-serif;
             background: var(--bg-gradient);
             background-color: #0f172a;
-            /* Fallback */
             color: var(--text-main);
             margin: 0;
             padding: 0;
             min-height: 100vh;
-            /* Abstract Orb Background */
             background-image:
                 radial-gradient(circle at 10% 20%, rgba(33, 150, 243, 0.15) 0%, transparent 40%),
                 radial-gradient(circle at 90% 80%, rgba(0, 230, 118, 0.1) 0%, transparent 40%);
             background-attachment: fixed;
+            overflow-x: hidden;
         }
 
-        .container {
-            max-width: 1400px;
-            margin: auto;
-            padding: 40px;
-        }
-
-        /* NAVBAR - Glass */
-        .navbar {
+        /* LAYOUT STRUCTURE */
+        .app-container {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 30px;
-            background: var(--glass-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--glass-border);
-            border-radius: 20px;
-            margin-bottom: 40px;
-            box-shadow: var(--glass-shadow);
+            min-height: 100vh;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--glass-border);
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
         }
 
         .logo {
@@ -68,7 +68,9 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            margin-bottom: 50px;
             letter-spacing: -0.5px;
+            color: white;
         }
 
         .logo i {
@@ -76,42 +78,90 @@
             filter: drop-shadow(0 0 5px rgba(0, 230, 118, 0.5));
         }
 
-        .user-menu a {
+        .section-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--text-sub);
+            letter-spacing: 1.5px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 12px;
             color: var(--text-sub);
             text-decoration: none;
-            font-weight: 500;
             transition: 0.3s;
-            padding: 8px 16px;
-            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            border: 1px solid transparent;
         }
 
-        .user-menu a:hover {
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.05);
             color: white;
-            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--glass-border);
         }
 
-        /* HEADER ROW */
+        .nav-item i {
+            font-size: 1.2rem;
+            color: var(--text-sub);
+        }
+
+        .nav-item:hover i {
+            color: var(--blue);
+        }
+
+        .nav-item.logout {
+            margin-top: auto;
+            color: var(--danger);
+        }
+
+        .nav-item.logout:hover {
+            background: rgba(255, 82, 82, 0.1);
+            border-color: rgba(255, 82, 82, 0.2);
+        }
+
+        .nav-item.logout i {
+            color: var(--danger);
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            /* Take remaining width */
+            padding: 40px;
+            width: calc(100% - var(--sidebar-width));
+            /* Fix flex calc */
+        }
+
+        /* HEADER */
         .header-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
         }
 
-        .section-title {
-            font-size: 1rem;
-            color: var(--text-sub);
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
+        .page-title {
+            font-size: 1.8rem;
+            font-weight: 700;
             margin: 0;
+            background: linear-gradient(90deg, white, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .btn-primary {
             background: linear-gradient(135deg, var(--primary) 0%, #00c853 100%);
             color: #000;
             border: none;
-            padding: 10px 20px;
+            padding: 12px 24px;
             border-radius: 12px;
             font-weight: 600;
             cursor: pointer;
@@ -127,10 +177,11 @@
             box-shadow: 0 6px 20px rgba(0, 230, 118, 0.4);
         }
 
-        /* CARDS - Glass */
+        /* CARDS */
         .status-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            /* Wider for sidebar layout */
             gap: 25px;
             margin-bottom: 60px;
         }
@@ -144,34 +195,31 @@
             border-radius: 24px;
             display: flex;
             flex-direction: column;
-            /* Changed to column for better service layout */
             justify-content: space-between;
-            /* Adjusted */
             transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             box-shadow: var(--glass-shadow);
-            min-height: 140px;
+            min-height: 180px;
         }
 
         .card:hover {
-            transform: translateY(-8px) scale(1.02);
+            transform: translateY(-5px) scale(1.01);
             border-color: rgba(255, 255, 255, 0.3);
             background: rgba(255, 255, 255, 0.08);
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            z-index: 10;
         }
 
-        /* Inner card layout wrapper */
         .card-header-flex {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
-            width: 100%;
+            align-items: start;
             margin-bottom: 20px;
         }
 
         .card-info h3 {
             margin: 0;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             color: white;
             font-weight: 600;
         }
@@ -188,24 +236,22 @@
             font-weight: 700;
             padding: 6px 12px;
             border-radius: 50px;
+            border: 1px solid transparent;
             display: flex;
             align-items: center;
             gap: 6px;
-            border: 1px solid transparent;
         }
 
         .up {
             background: rgba(0, 230, 118, 0.1);
             color: var(--primary);
             border-color: rgba(0, 230, 118, 0.2);
-            box-shadow: 0 0 10px rgba(0, 230, 118, 0.1);
         }
 
         .down {
             background: rgba(255, 82, 82, 0.1);
             color: var(--danger);
             border-color: rgba(255, 82, 82, 0.2);
-            box-shadow: 0 0 10px rgba(255, 82, 82, 0.1);
         }
 
         .delete-btn {
@@ -231,94 +277,7 @@
             opacity: 1;
         }
 
-        /* TOOLS GRID */
-        .tools-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 25px;
-        }
-
-        .tool-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 35px 25px;
-            text-align: center;
-            cursor: pointer;
-            transition: 0.3s;
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* Subtle shine effect */
-        .tool-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
-            transition: 0.5s;
-        }
-
-        .tool-card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(255, 255, 255, 0.3);
-            background: rgba(255, 255, 255, 0.08);
-        }
-
-        .tool-card:hover::before {
-            left: 100%;
-        }
-
-        .tool-icon {
-            font-size: 2.5rem;
-            color: var(--blue);
-            margin-bottom: 20px;
-            display: inline-block;
-            filter: drop-shadow(0 0 8px rgba(33, 150, 243, 0.4));
-        }
-
-        .tool-title {
-            font-weight: 600;
-            font-size: 1.1rem;
-            margin-bottom: 8px;
-            color: white;
-        }
-
-        .tool-desc {
-            font-size: 0.85rem;
-            color: var(--text-sub);
-            line-height: 1.4;
-        }
-
-        /* TERMINAL */
-        .terminal-box {
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
-            margin-top: 60px;
-            padding: 25px;
-            font-family: 'Consolas', monospace;
-            color: #d1d5db;
-            border: 1px solid var(--glass-border);
-            min-height: 200px;
-            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
-        }
-
-        .log-entry {
-            margin-bottom: 8px;
-            border-left: 3px solid var(--primary);
-            padding-left: 12px;
-            background: rgba(0, 230, 118, 0.05);
-            padding-top: 4px;
-            padding-bottom: 4px;
-            border-radius: 0 4px 4px 0;
-        }
-
-        /* MODAL */
+        /* MODALS (Common) */
         .modal {
             display: none;
             position: fixed;
@@ -327,11 +286,17 @@
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(8px);
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            z-index: 2000;
             animation: fadeIn 0.2s ease-out;
+        }
+
+        /* Larger result modal */
+        .modal-large {
+            width: 800px;
+            max-width: 90vw;
         }
 
         .modal-content {
@@ -340,13 +305,29 @@
             border-radius: 24px;
             border: 1px solid var(--glass-border);
             width: 400px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.7);
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
         }
 
         .modal-header {
-            font-size: 1.3rem;
+            font-size: 1.4rem;
             font-weight: 700;
             margin-bottom: 25px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .close-icon {
+            cursor: pointer;
+            color: var(--text-sub);
+            transition: 0.2s;
+        }
+
+        .close-icon:hover {
             color: white;
         }
 
@@ -356,14 +337,15 @@
 
         .form-group input {
             width: 100%;
-            padding: 12px 15px;
-            border-radius: 10px;
+            padding: 14px 16px;
+            border-radius: 12px;
             border: 1px solid #334155;
             background: #0f172a;
             color: white;
             box-sizing: border-box;
             outline: none;
             transition: 0.2s;
+            font-size: 1rem;
         }
 
         .form-group input:focus {
@@ -374,8 +356,24 @@
         .modal-actions {
             display: flex;
             justify-content: flex-end;
-            gap: 12px;
-            margin-top: 30px;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        /* Result Terminal in Modal */
+        .result-output {
+            background: #0f172a;
+            border-radius: 12px;
+            padding: 20px;
+            font-family: 'Consolas', monospace;
+            color: #d1d5db;
+            border: 1px solid #334155;
+            min-height: 300px;
+            max-height: 500px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            line-height: 1.5;
         }
 
         @keyframes fadeIn {
@@ -397,21 +395,19 @@
             const grid = document.getElementById('grid');
             const warnings = data.warnings || 0;
 
-            // Update Services Warning Card if it exists (or add it nearby, but for now we trust the layout)
-            // Creating a dedicated warnings dash item if desired, but sticking to existing grid for now.
-
             grid.innerHTML = '';
 
-            // Add a Summary Card for Services
             if (warnings > 0) {
                 grid.innerHTML += `
     <div class="card" style="border-color: var(--danger);">
-        <div class="card-info">
-            <h3><i class="ri-alert-fill" style="color:var(--danger)"></i> Services Warning</h3>
-            <p>${warnings} service(s) down</p>
-        </div>
-        <div class="status-badge down">
-            <i class="ri-alarm-warning-fill"></i> CRITICAL
+        <div class="card-header-flex">
+             <div class="card-info">
+                <h3><i class="ri-alert-fill" style="color:var(--danger)"></i> Services Warning</h3>
+                <p>${warnings} service(s) down</p>
+            </div>
+            <div class="status-badge down">
+                <i class="ri-alarm-warning-fill"></i> CRITICAL
+            </div>
         </div>
     </div>`;
             }
@@ -440,7 +436,6 @@
                 grid.innerHTML += `
     <div class="card">
         <button class="delete-btn" onclick="deleteHost(${t.id})"><i class="ri-delete-bin-line"></i></button>
-        
         <div class="card-header-flex">
             <div class="card-info">
                 <h3>${t.name}</h3>
@@ -450,7 +445,6 @@
                 <i class="${icon}"></i> ${t.status}
             </div>
         </div>
-        
         <div style="width:100%">
             ${servicesHtml}
         </div>
@@ -465,10 +459,7 @@
             let res = await fetch('/api/host', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: name, ip: ip })
             });
-            if (res.ok) {
-                closeModal(); update(); document.getElementById('hName').value = '';
-                document.getElementById('hIp').value = '';
-            }
+            if (res.ok) { closeModal(); update(); document.getElementById('hName').value = ''; document.getElementById('hIp').value = ''; }
             else { alert("Erreur"); }
         }
 
@@ -478,25 +469,19 @@
             update();
         }
 
-        // Service Functions
         let currentHostId = null;
-        function showServiceModal(hid) {
-            currentHostId = hid; document.getElementById('serviceModal').style.display =
-                'flex';
-        }
+        function showServiceModal(hid) { currentHostId = hid; document.getElementById('serviceModal').style.display = 'flex'; }
         function closeServiceModal() { document.getElementById('serviceModal').style.display = 'none'; }
 
         async function addService() {
             const name = document.getElementById('sName').value;
             const port = document.getElementById('sPort').value;
             if (!name || !port) return alert("Champs requis");
-
             await fetch('/api/service', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ host_id: currentHostId, name: name, port: port })
             });
-            closeServiceModal();
-            update();
+            closeServiceModal(); update();
         }
 
         async function deleteService(sid) {
@@ -508,29 +493,42 @@
         function showModal() { document.getElementById('addModal').style.display = 'flex'; }
         function closeModal() { document.getElementById('addModal').style.display = 'none'; }
 
+        // Result Modal Logic
+        function showResultModal(title, content) {
+            document.getElementById('resTitle').innerText = title;
+            document.getElementById('resContent').innerText = content;
+            document.getElementById('resultModal').style.display = 'flex';
+        }
+        function closeResultModal() { document.getElementById('resultModal').style.display = 'none'; }
+
         async function run(url, name) {
-            const out = document.getElementById('output');
-            out.innerHTML = `<div class="log-entry" style="border-color:#555">Exécution: ${name}...</div>` + out.innerHTML;
+            showResultModal(name, "Exécution en cours... Veuillez patienter.");
+
             let body = null;
             if (url.includes('scan') || url.includes('vuln')) {
-                let ip = prompt("Entrer IP Cible pour " + name + ":");
-                if (!ip) return;
+                // For scans, we might want to prompt, but for now specific tools like Scan Network (ARP) don't need params
+                // keeping logic for port scan which might need IP if not scanning a specific host card
+                // But from Sidebar, these are usually global or local network tools.
+            }
+
+            if (url.includes('ports') || url.includes('vuln')) {
+                let ip = prompt("Adresse IP cible :");
+                if (!ip) { closeResultModal(); return; }
                 body = JSON.stringify({ ip: ip });
             }
+
             try {
                 let res = await fetch(url, {
                     method: body ? 'POST' : 'GET', headers: { 'Content-Type': 'application/json' }, body: body
                 });
                 let data = await res.json();
                 let result = JSON.stringify(data, null, 2);
-                out.innerHTML = `<div class="log-entry"><strong>${name} Terminé:</strong>
-        <pre>${result}</pre>
-    </div>` + out.innerHTML;
+                showResultModal(name + " - Résultat", result);
             } catch (e) {
-                out.innerHTML = `<div class="log-entry" style="border-color:red">Erreur lors de ${name}</div>` +
-                    out.innerHTML;
+                showResultModal("Erreur", "Une erreur est survenue lors de l'exécution de " + name);
             }
         }
+
         setInterval(update, 2000);
         window.onload = update;
     </script>
@@ -538,80 +536,69 @@
 
 <body>
 
-    <div class="container">
-        <!-- NAVBAR -->
-        <div class="navbar">
+    <div class="app-container">
+        <!-- SIDEBAR -->
+        <div class="sidebar">
             <div class="logo"><i class="ri-shield-check-fill"></i> NetGuardian</div>
-            <div class="user-menu"><a href="/logout">Déconnexion <i class="ri-logout-box-r-line"></i></a></div>
-        </div>
 
-        <!-- STATUS -->
-        <div class="header-row">
-            <div class="section-title">ÉTAT DU SYSTÈME</div>
-            <button class="btn-primary" onclick="showModal()"><i class="ri-add-line"></i> Ajouter Hôte</button>
-        </div>
+            <div class="section-label">Outils Réseau</div>
 
-        <div class="status-grid" id="grid">
-            <!-- Filled by JS -->
-        </div>
+            <!-- Tools as Nav Items -->
+            <div class="nav-item" onclick="run('/api/scan/arp', 'Scan Réseau ARP')">
+                <i class="ri-radar-fill"></i> <span>Scan Réseau</span>
+            </div>
+            <div class="nav-item" onclick="run('/api/speedtest', 'Test de Débit')">
+                <i class="ri-speed-fill"></i> <span>Test de Débit</span>
+            </div>
+            <div class="nav-item" onclick="run('/api/scan/ports', 'Scanner de Ports')">
+                <i class="ri-search-eye-line"></i> <span>Scanner de Ports</span>
+            </div>
+            <div class="nav-item" onclick="run('/api/scan/vuln', 'Audit Vulnérabilité')">
+                <i class="ri-bug-fill"></i> <span>Audit Sécurité</span>
+            </div>
 
-        <!-- TOOLS -->
-        <div class="section-title" style="margin-bottom: 20px;">OUTILS D'ADMINISTRATION</div>
-        <div class="test-class"></div>
-        <div class="tools-grid">
-            <!-- NEW NETWORK MAP BUTTON -->
-            <a href="/map" style="text-decoration:none; color:inherit;">
-                <div class="tool-card">
-                    <i class="ri-map-2-fill tool-icon" style="color:#2196f3"></i>
-                    <div class="tool-title">Cartographie</div>
-                    <div class="tool-desc">Visualiser le Réseau</div>
+            <div class="section-label" style="margin-top:20px;">Cartographie</div>
+            <a href="/map" style="text-decoration:none;">
+                <div class="nav-item">
+                    <i class="ri-map-2-fill"></i> <span>Carte du Réseau</span>
                 </div>
             </a>
 
-            <div class="tool-card" onclick="run('/api/scan/arp', 'Scan Réseau ARP')">
-                <i class="ri-radar-fill tool-icon"></i>
-                <div class="tool-title">Scan Réseau</div>
-                <div class="tool-desc">Découvrir les appareils</div>
-            </div>
-
-            <div class="tool-card" onclick="run('/api/speedtest', 'Test de Débit')">
-                <i class="ri-speed-fill tool-icon"></i>
-                <div class="tool-title">Test de Débit</div>
-                <div class="tool-desc">Mesurer la bande passante</div>
-            </div>
-
-            <div class="tool-card" onclick="run('/api/scan/ports', 'Inspecteur de Ports')">
-                <i class="ri-search-eye-line tool-icon"></i>
-                <div class="tool-title">Scanner de Ports</div>
-                <div class="tool-desc">Trouver ports ouverts (21, 80...)</div>
-            </div>
-
-            <div class="tool-card" onclick="run('/api/scan/vuln', 'Audit Vulnérabilité')">
-                <i class="ri-bug-fill tool-icon"></i>
-                <div class="tool-title">Audit Sécurité</div>
-                <div class="tool-desc">Analyser risques & failles</div>
-            </div>
-
-            <a href="/download/report" target="_blank" style="text-decoration:none; color:inherit;">
-                <div class="tool-card">
-                    <i class="ri-file-pdf-fill tool-icon" style="color:#ff5252"></i>
-                    <div class="tool-title">Rapport PDF</div>
-                    <div class="tool-desc">Télécharger le bilan</div>
+            <div class="section-label" style="margin-top:20px;">Rapports</div>
+            <a href="/download/report" target="_blank" style="text-decoration:none;">
+                <div class="nav-item">
+                    <i class="ri-file-pdf-fill"></i> <span>Télécharger PDF</span>
                 </div>
+            </a>
+
+            <!-- User -->
+            <a href="/logout" class="nav-item logout">
+                <i class="ri-logout-box-r-line"></i> <span>Déconnexion</span>
             </a>
         </div>
 
-        <!-- LOGS -->
-        <div class="terminal-box" id="output">
-            <div class="log-entry" style="border-color:#555">Système Prêt. En attente de commande...</div>
-        </div>
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <div class="header-row">
+                <h1 class="page-title">Tableau de Bord</h1>
+                <button class="btn-primary" onclick="showModal()"><i class="ri-add-line"></i> Ajouter Hôte</button>
+            </div>
 
+            <!-- STATUS GRID -->
+            <div class="section-label">Système de Surveillance</div>
+            <div class="status-grid" id="grid">
+                <!-- Filled by JS -->
+            </div>
+        </div>
     </div>
 
     <!-- ADD HOST MODAL -->
     <div class="modal" id="addModal">
         <div class="modal-content">
-            <div class="modal-header">Ajouter un Hôte</div>
+            <div class="modal-header">
+                Ajouter un Hôte
+                <i class="ri-close-line close-icon" onclick="closeModal()"></i>
+            </div>
             <div class="form-group">
                 <input type="text" id="hName" placeholder="Nom (ex: Serveur Web)">
             </div>
@@ -620,7 +607,7 @@
             </div>
             <div class="modal-actions">
                 <button onclick="closeModal()"
-                    style="background:none; border:1px solid #555; color:white; padding:8px 16px; border-radius:6px; cursor:pointer;">Annuler</button>
+                    style="background:none; border:1px solid #555; color:white; padding:8px 16px; border-radius:12px; cursor:pointer;">Annuler</button>
                 <button class="btn-primary" onclick="addHost()">Enregistrer</button>
             </div>
         </div>
@@ -629,7 +616,10 @@
     <!-- ADD SERVICE MODAL -->
     <div class="modal" id="serviceModal">
         <div class="modal-content">
-            <div class="modal-header">Ajouter Service</div>
+            <div class="modal-header">
+                Ajouter Service
+                <i class="ri-close-line close-icon" onclick="closeServiceModal()"></i>
+            </div>
             <div class="form-group">
                 <input type="text" id="sName" placeholder="Nom (ex: Web, SQL)">
             </div>
@@ -638,8 +628,24 @@
             </div>
             <div class="modal-actions">
                 <button onclick="closeServiceModal()"
-                    style="background:none; border:1px solid #555; color:white; padding:8px 16px; border-radius:6px; cursor:pointer;">Annuler</button>
+                    style="background:none; border:1px solid #555; color:white; padding:8px 16px; border-radius:12px; cursor:pointer;">Annuler</button>
                 <button class="btn-primary" onclick="addService()">Ajouter</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- RESULT MODAL -->
+    <div class="modal" id="resultModal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <span id="resTitle">Résultat</span>
+                <i class="ri-close-line close-icon" onclick="closeResultModal()"></i>
+            </div>
+            <div id="resContent" class="result-output">
+                <!-- Output goes here -->
+            </div>
+            <div class="modal-actions">
+                <button class="btn-primary" onclick="closeResultModal()">Fermer</button>
             </div>
         </div>
     </div>
