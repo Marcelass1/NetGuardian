@@ -11,52 +11,69 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #0f111a;
-            --card-bg: #1a1d2d;
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
             --primary: #00e676;
-            /* Bright Green */
+            /* Neon Green */
             --danger: #ff5252;
-            --text: #ffffff;
-            --text-sub: #a0aec0;
-            --border: #2d3248;
+            /* Neon Red */
+            --blue: #2196f3;
+            /* Neon Blue */
+            --text-main: #ffffff;
+            --text-sub: #94a3b8;
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
+            background: var(--bg-gradient);
+            background-color: #0f172a;
+            /* Fallback */
+            color: var(--text-main);
             margin: 0;
             padding: 0;
-            background-image: radial-gradient(circle at top center, #1f2336 0%, #0f111a 70%);
             min-height: 100vh;
+            /* Abstract Orb Background */
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(33, 150, 243, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(0, 230, 118, 0.1) 0%, transparent 40%);
+            background-attachment: fixed;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: auto;
-            padding: 40px 20px;
+            padding: 40px;
         }
 
-        /* NAVBAR */
+        /* NAVBAR - Glass */
         .navbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding-bottom: 20px;
-            border-bottom: 1px solid var(--border);
+            padding: 20px 30px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--glass-border);
+            border-radius: 20px;
             margin-bottom: 40px;
+            box-shadow: var(--glass-shadow);
         }
 
         .logo {
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             font-weight: 700;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            letter-spacing: -0.5px;
         }
 
         .logo i {
             color: var(--primary);
+            filter: drop-shadow(0 0 5px rgba(0, 230, 118, 0.5));
         }
 
         .user-menu a {
@@ -64,182 +81,241 @@
             text-decoration: none;
             font-weight: 500;
             transition: 0.3s;
+            padding: 8px 16px;
+            border-radius: 8px;
         }
 
         .user-menu a:hover {
-            color: var(--danger);
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
         }
 
-        /* STATUS CARDS */
+        /* HEADER ROW */
         .header-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
 
         .section-title {
-            font-size: 1.1rem;
+            font-size: 1rem;
             color: var(--text-sub);
-            font-weight: 500;
+            font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
             margin: 0;
         }
 
         .btn-primary {
-            background-color: var(--primary);
+            background: linear-gradient(135deg, var(--primary) 0%, #00c853 100%);
             color: #000;
             border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
+            padding: 10px 20px;
+            border-radius: 12px;
             font-weight: 600;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 5px;
-            transition: 0.2s;
+            gap: 8px;
+            transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 230, 118, 0.3);
         }
 
         .btn-primary:hover {
-            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 230, 118, 0.4);
         }
 
+        /* CARDS - Glass */
         .status-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-            margin-bottom: 50px;
+            gap: 25px;
+            margin-bottom: 60px;
         }
 
         .card {
-            background: var(--card-bg);
-            padding: 25px;
-            border-radius: 16px;
-            border: 1px solid var(--border);
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            padding: 30px;
+            border-radius: 24px;
             display: flex;
+            flex-direction: column;
+            /* Changed to column for better service layout */
             justify-content: space-between;
-            align-items: center;
-            transition: 0.3s;
+            /* Adjusted */
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
+            box-shadow: var(--glass-shadow);
+            min-height: 140px;
         }
 
         .card:hover {
-            transform: translateY(-5px);
-            border-color: var(--primary);
-            box-shadow: 0 10px 30px rgba(0, 230, 118, 0.1);
+            transform: translateY(-8px) scale(1.02);
+            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Inner card layout wrapper */
+        .card-header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            width: 100%;
+            margin-bottom: 20px;
         }
 
         .card-info h3 {
             margin: 0;
-            font-size: 1rem;
-            color: var(--text-sub);
-            font-weight: 500;
+            font-size: 1.1rem;
+            color: white;
+            font-weight: 600;
         }
 
         .card-info p {
             margin: 5px 0 0;
             font-size: 0.9rem;
-            color: #555;
+            color: var(--text-sub);
+            font-family: 'Consolas', monospace;
         }
 
         .status-badge {
-            font-size: 1.2rem;
+            font-size: 0.9rem;
             font-weight: 700;
-            padding: 8px 16px;
+            padding: 6px 12px;
             border-radius: 50px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
+            border: 1px solid transparent;
         }
 
         .up {
             background: rgba(0, 230, 118, 0.1);
             color: var(--primary);
+            border-color: rgba(0, 230, 118, 0.2);
+            box-shadow: 0 0 10px rgba(0, 230, 118, 0.1);
         }
 
         .down {
             background: rgba(255, 82, 82, 0.1);
             color: var(--danger);
+            border-color: rgba(255, 82, 82, 0.2);
+            box-shadow: 0 0 10px rgba(255, 82, 82, 0.1);
         }
 
         .delete-btn {
             position: absolute;
-            top: 10px;
-            right: 10px;
+            top: 15px;
+            right: 15px;
             color: var(--text-sub);
             background: none;
             border: none;
             cursor: pointer;
             opacity: 0;
             transition: 0.2s;
+            padding: 5px;
+            border-radius: 50%;
+        }
+
+        .delete-btn:hover {
+            color: var(--danger);
+            background: rgba(255, 82, 82, 0.1);
         }
 
         .card:hover .delete-btn {
             opacity: 1;
         }
 
-        .delete-btn:hover {
-            color: var(--danger);
-        }
-
         /* TOOLS GRID */
         .tools-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px;
         }
 
         .tool-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 30px 20px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 35px 25px;
             text-align: center;
             cursor: pointer;
             transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Subtle shine effect */
+        .tool-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+            transition: 0.5s;
         }
 
         .tool-card:hover {
-            background: #252a40;
-            border-color: var(--primary);
             transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .tool-card:hover::before {
+            left: 100%;
         }
 
         .tool-icon {
             font-size: 2.5rem;
-            color: var(--primary);
-            margin-bottom: 15px;
+            color: var(--blue);
+            margin-bottom: 20px;
             display: inline-block;
+            filter: drop-shadow(0 0 8px rgba(33, 150, 243, 0.4));
         }
 
         .tool-title {
             font-weight: 600;
             font-size: 1.1rem;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+            color: white;
         }
 
         .tool-desc {
             font-size: 0.85rem;
             color: var(--text-sub);
+            line-height: 1.4;
         }
 
         /* TERMINAL */
         .terminal-box {
-            background: #000;
-            border-radius: 12px;
-            margin-top: 50px;
-            padding: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            margin-top: 60px;
+            padding: 25px;
             font-family: 'Consolas', monospace;
-            color: #ccc;
-            border: 1px solid #333;
+            color: #d1d5db;
+            border: 1px solid var(--glass-border);
             min-height: 200px;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
         }
 
         .log-entry {
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             border-left: 3px solid var(--primary);
-            padding-left: 10px;
+            padding-left: 12px;
+            background: rgba(0, 230, 118, 0.05);
+            padding-top: 4px;
+            padding-bottom: 4px;
+            border-radius: 0 4px 4px 0;
         }
 
         /* MODAL */
@@ -250,46 +326,68 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
             justify-content: center;
             align-items: center;
             z-index: 1000;
+            animation: fadeIn 0.2s ease-out;
         }
 
         .modal-content {
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
+            background: #1e293b;
+            padding: 35px;
+            border-radius: 24px;
+            border: 1px solid var(--glass-border);
             width: 400px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
         .modal-header {
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             font-weight: 700;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
+            color: white;
         }
 
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
         .form-group input {
             width: 100%;
-            padding: 10px;
-            border-radius: 6px;
-            border: 1px solid var(--border);
-            background: #0f111a;
+            padding: 12px 15px;
+            border-radius: 10px;
+            border: 1px solid #334155;
+            background: #0f172a;
             color: white;
             box-sizing: border-box;
-            /* Fix padding issue */
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .form-group input:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.2);
         }
 
         .modal-actions {
             display: flex;
             justify-content: flex-end;
-            gap: 10px;
-            margin-top: 20px;
+            gap: 12px;
+            margin-top: 30px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
     </style>
     <script>
@@ -322,34 +420,39 @@
                 let statusClass = t.status === 'UP' ? 'up' : 'down';
                 let icon = t.status === 'UP' ? 'ri-checkbox-circle-fill' : 'ri-close-circle-fill';
 
-                let servicesHtml = '<div style="margin-top:10px; border-top:1px solid #333; padding-top:10px;">';
+                let servicesHtml = '<div style="margin-top:15px; border-top:1px solid var(--glass-border); padding-top:15px;">';
                 if (t.services) {
                     t.services.forEach(s => {
-                        let sColor = s.status === 'UP' ? '#00e676' : '#ff5252';
+                        let sColor = s.status === 'UP' ? 'var(--primary)' : 'var(--danger)';
                         servicesHtml += `
-        <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:4px;">
-            <span>${s.name} (${s.port})</span>
+        <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:8px; color:white;">
+            <span>${s.name} <span style="color:var(--text-sub); font-size:0.8rem">(${s.port})</span></span>
             <span style="color:${sColor}; font-weight:bold; cursor:pointer;" onclick="deleteService(${s.id})">
-                ${s.status} <i class="ri-delete-bin-line" style="color:#555;font-size:0.8rem"></i>
+                ${s.status} <i class="ri-delete-bin-line" style="color:rgba(255,255,255,0.5);font-size:0.8rem"></i>
             </span>
         </div>`;
                     });
                 }
                 servicesHtml += `<button onclick="showServiceModal(${t.id})"
-            style="width:100%; margin-top:5px; background:none; border:1px dashed #555; color:#777; cursor:pointer; font-size:0.8rem; border-radius:4px;">+
-            Service</button>`
+            style="width:100%; margin-top:10px; background:rgba(255,255,255,0.05); border:1px dashed var(--glass-border); color:var(--text-sub); cursor:pointer; font-size:0.8rem; border-radius:8px; padding:8px; transition:0.2s;">+ Add Service</button>`
                 servicesHtml += '</div>';
 
                 grid.innerHTML += `
     <div class="card">
         <button class="delete-btn" onclick="deleteHost(${t.id})"><i class="ri-delete-bin-line"></i></button>
-        <div class="card-info">
-            <h3>${t.name}</h3>
-            <p>${t.ip}</p>
-            ${servicesHtml}
+        
+        <div class="card-header-flex">
+            <div class="card-info">
+                <h3>${t.name}</h3>
+                <p>${t.ip}</p>
+            </div>
+            <div class="status-badge ${statusClass}">
+                <i class="${icon}"></i> ${t.status}
+            </div>
         </div>
-        <div class="status-badge ${statusClass}">
-            <i class="${icon}"></i> ${t.status}
+        
+        <div style="width:100%">
+            ${servicesHtml}
         </div>
     </div>`;
             });
