@@ -106,20 +106,22 @@ class NetworkEngine:
         mac_clean = mac.replace(':', '').replace('-', '').upper()
         if len(mac_clean) < 6: return "Invalid MAC"
         if mac_clean[:6] in self.mac_vendor_cache: return self.mac_vendor_cache[mac_clean[:6]]
-        try:
-            # Fake vendor for demo if offline
-            if mac_clean.startswith("005056"): return "VMware"
-            if mac_clean.startswith("B827EB"): return "Raspberry Pi"
-            
-            url = f"https://macvendors.co/api/{mac}"
-            response = requests.get(url, timeout=2)
-            if response.status_code == 200:
-                data = response.json()
-                vendor = data.get('result', {}).get('company', 'Unknown Vendor')
-                self.mac_vendor_cache[mac_clean[:6]] = vendor
-                return vendor
-        except Exception: pass
+        
+        # Fake vendor for demo if offline (Optimization: Removed online check to prevent timeout)
+        if mac_clean.startswith("005056"): return "VMware"
+        if mac_clean.startswith("B827EB"): return "Raspberry Pi"
+        
         return "Unknown Vendor"
+        # try:
+        #     url = f"https://macvendors.co/api/{mac}"
+        #     response = requests.get(url, timeout=0.5)
+        #     if response.status_code == 200:
+        #         data = response.json()
+        #         vendor = data.get('result', {}).get('company', 'Unknown Vendor')
+        #         self.mac_vendor_cache[mac_clean[:6]] = vendor
+        #         return vendor
+        # except Exception: pass
+        # return "Unknown Vendor"
 
     def scan_ports(self, ip):
         common_ports = {21: "FTP", 22: "SSH", 23: "Telnet", 25: "SMTP", 53: "DNS", 80: "HTTP", 443: "HTTPS", 3389: "RDP"}
