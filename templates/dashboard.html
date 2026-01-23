@@ -160,7 +160,7 @@
             background: linear-gradient(90deg, white, #94a3b8);
             -webkit-background-clip: text;
             background-clip: text;
-            /* Generic property */
+            /* Generic */
             -webkit-text-fill-color: transparent;
         }
 
@@ -537,7 +537,7 @@
                 activityList.innerHTML = '';
                 data.recent_activity.forEach(log => {
                     let iconClass = log.type === 'error' ? 'ri-error-warning-fill error' : 'ri-checkbox-circle-fill success';
-                    if (log.type === 'info') iconClass = 'ri-information-fill activity-icon'; // Default
+                    if (log.type === 'info') iconClass = 'ri-information-fill activity-icon';
 
                     activityList.innerHTML += `
                         <div class="activity-item">
@@ -698,7 +698,7 @@
 
         function showResultModal(title, content) {
             document.getElementById('resTitle').innerText = title;
-            document.getElementById('resContent').innerText = content;
+            document.getElementById('resContent').innerHTML = content; // Changed to innerHTML for formatting
             document.getElementById('resultModal').style.display = 'flex';
         }
         function closeResultModal() { document.getElementById('resultModal').style.display = 'none'; }
@@ -725,24 +725,80 @@
 
         async function run(url, name) {
             let body = null;
-            // Check if tool requires input
             if (url.includes('ports') || url.includes('vuln')) {
                 const ip = await showInputModal();
-                if (!ip) return; // User cancelled
+                if (!ip) return;
                 body = JSON.stringify({ ip: ip });
             }
 
-            showResultModal(name, "Exécution en cours... Veuillez patienter.");
+            showResultModal(name, '<div style="text-align:center; padding:20px; color:#aaa"><i class="ri-loader-4-line ri-spin" style="font-size:2rem; margin-bottom:10px"></i><br>Analyse en cours...</div>');
 
             try {
                 let res = await fetch(url, {
                     method: body ? 'POST' : 'GET', headers: { 'Content-Type': 'application/json' }, body: body
                 });
                 let data = await res.json();
-                let result = JSON.stringify(data, null, 2);
-                showResultModal(name + " - Résultat", result);
+
+                // FORMATTER LOGIC
+                let content = '';
+
+                if (Array.isArray(data) && data.length > 0 && data[0].mac) {
+                    // ARP TABLE
+                    content += `<table style="width:100%; border-collapse:collapse; color:#eee;">
+                        <thead>
+                            <tr style="border-bottom:1px solid #444; text-align:left; color:var(--blue)">
+                                <th style="padding:10px;">IP Address</th>
+                                <th style="padding:10px;">MAC Address</th>
+                                <th style="padding:10px;">Vendor</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+                    data.forEach(d => {
+                        content += `<tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
+                            <td style="padding:10px; color:var(--primary); font-family:monospace">${d.ip}</td>
+                            <td style="padding:10px; font-family:monospace">${d.mac}</td>
+                            <td style="padding:10px; color:#aaa">${d.vendor || 'Unknown'}</td>
+                        </tr>`;
+                    });
+                    content += '</tbody></table>';
+
+                } else if (data.download && data.upload) {
+                    // SPEEDTEST
+                    content = `<div style="display:flex; justify-content:space-around; align-items:center; padding:30px 0; text-align:center;">
+                        <div>
+                            <div style="font-size:0.9rem; color:#aaa; margin-bottom:5px">DOWNLOAD</div>
+                            <div style="font-size:1.8rem; font-weight:bold; color:var(--primary)">${data.download} <span style="font-size:1rem">Mbps</span></div>
+                        </div>
+                         <div>
+                            <div style="font-size:0.9rem; color:#aaa; margin-bottom:5px">PING</div>
+                            <div style="font-size:1.5rem; font-weight:bold; color:white">${data.ping} <span style="font-size:1rem">ms</span></div>
+                        </div>
+                        <div>
+                            <div style="font-size:0.9rem; color:#aaa; margin-bottom:5px">UPLOAD</div>
+                            <div style="font-size:1.8rem; font-weight:bold; color:var(--blue)">${data.upload} <span style="font-size:1rem">Mbps</span></div>
+                        </div>
+                     </div>`;
+
+                } else if (Array.isArray(data) && data.length > 0 && data[0].port) {
+                    // PORT SCANNER (Assuming list of ports)
+                    content += `<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap:10px;">`;
+                    data.forEach(p => {
+                        content += `<div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; border:1px solid var(--glass-border); text-align:center;">
+                            <div style="font-weight:bold; color:white; font-size:1.2rem">${p.port}</div>
+                            <div style="color:var(--primary); font-size:0.85rem">OPEN</div>
+                            <div style="color:#aaa; font-size:0.8rem">${p.service || 'Unknown'}</div>
+                          </div>`;
+                    });
+                    content += `</div>`;
+
+                } else {
+                    // FALLBACK
+                    content = `<pre style="font-family:Consolas, monospace; color:#d1d5db; white-space:pre-wrap;">${JSON.stringify(data, null, 2)}</pre>`;
+                }
+
+                showResultModal(name, content);
             } catch (e) {
-                showResultModal("Erreur", "Une erreur est survenue lors de l'exécution de " + name);
+                showResultModal("Erreur", "Une erreur est survenue: " + e);
             }
         }
 
