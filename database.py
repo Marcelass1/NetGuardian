@@ -25,6 +25,7 @@ def init_db():
                 host_id INTEGER NOT NULL,
                 port INTEGER NOT NULL,
                 name TEXT NOT NULL,
+                status TEXT DEFAULT 'Checking...',
                 FOREIGN KEY(host_id) REFERENCES hosts(id) ON DELETE CASCADE
             )
         ''')
@@ -64,7 +65,7 @@ def delete_host(host_id):
 def add_service(host_id, port, name):
     conn = get_db_connection()
     with conn:
-        conn.execute("INSERT INTO services (host_id, port, name) VALUES (?, ?, ?)", (host_id, port, name))
+        conn.execute("INSERT INTO services (host_id, port, name, status) VALUES (?, ?, ?, 'Checking...')", (host_id, port, name))
     conn.close()
     return True
 
@@ -73,6 +74,12 @@ def get_services(host_id):
     services = conn.execute("SELECT * FROM services WHERE host_id = ?", (host_id,)).fetchall()
     conn.close()
     return [dict(ix) for ix in services]
+
+def update_service_status(service_id, status):
+    conn = get_db_connection()
+    with conn:
+        conn.execute("UPDATE services SET status = ? WHERE id = ?", (status, service_id))
+    conn.close()
 
 def delete_service(service_id):
     conn = get_db_connection()

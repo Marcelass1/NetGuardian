@@ -21,7 +21,7 @@ import socket
 # Key: host_id, Value: {'status': 'Checking...', 'history': [], 'last_check': ''}
 HOST_STATE = {} 
 # Key: service_id, Value: "UP" | "DOWN"
-SERVICE_STATE = {}
+# SERVICE_STATE = {} # REMOVED: Now using DB
 
 def check_port(ip, port):
     try:
@@ -66,7 +66,11 @@ def monitor_loop():
             for svc in services:
                 sid = svc['id']
                 port_open = check_port(ip, svc['port'])
-                SERVICE_STATE[sid] = "UP" if port_open else "DOWN"
+                status = "UP" if port_open else "DOWN"
+                
+                # Update DB only if changed (optional optimization, but we just write for now to be safe)
+                if svc.get('status') != status:
+                    database.update_service_status(sid, status)
 
         # Cleanup state for deleted hosts
         current_ids = [h['id'] for h in db_hosts]
@@ -118,12 +122,13 @@ def api_status():
         hid = h['id']
         state = HOST_STATE.get(hid, {'status': 'Pending', 'history': [], 'last_check': '-'})
         
-        # Get services and their status
+        # Get services and their status (directly from DB now)
         services = database.get_services(hid)
         service_data = []
         for svc in services:
             sid = svc['id']
-            status = SERVICE_STATE.get(sid, "Checking...")
+            # Default to Checking if new column is somehow empty (shouldn't happen with default)
+            status = svc['status'] if svc['status'] else "Checking..."
             if status == "DOWN": warnings += 1
             service_data.append({
                 "id": sid, "name": svc['name'], "port": svc['port'], "status": status
