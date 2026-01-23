@@ -703,14 +703,37 @@
         }
         function closeResultModal() { document.getElementById('resultModal').style.display = 'none'; }
 
+        // INPUT MODAL LOGIC
+        let inputResolver = null;
+        function showInputModal() {
+            return new Promise((resolve) => {
+                inputResolver = resolve;
+                document.getElementById('targetIp').value = '';
+                document.getElementById('inputModal').style.display = 'flex';
+                document.getElementById('targetIp').focus();
+            });
+        }
+        function submitInput() {
+            const val = document.getElementById('targetIp').value;
+            if (inputResolver) inputResolver(val);
+            document.getElementById('inputModal').style.display = 'none';
+        }
+        function cancelInput() {
+            if (inputResolver) inputResolver(null);
+            document.getElementById('inputModal').style.display = 'none';
+        }
+
         async function run(url, name) {
-            showResultModal(name, "Exécution en cours... Veuillez patienter.");
             let body = null;
+            // Check if tool requires input
             if (url.includes('ports') || url.includes('vuln')) {
-                let ip = prompt("Adresse IP cible :");
-                if (!ip) { closeResultModal(); return; }
+                const ip = await showInputModal();
+                if (!ip) return; // User cancelled
                 body = JSON.stringify({ ip: ip });
             }
+
+            showResultModal(name, "Exécution en cours... Veuillez patienter.");
+
             try {
                 let res = await fetch(url, {
                     method: body ? 'POST' : 'GET', headers: { 'Content-Type': 'application/json' }, body: body
@@ -807,13 +830,6 @@
                     </div>
                     <div class="activity-list" id="activityList">
                         <!-- Populated by JS -->
-                        <div class="activity-item">
-                            <i class="ri-information-fill activity-icon"></i>
-                            <div style="flex:1">
-                                <div class="activity-msg">Système démarré</div>
-                                <div class="activity-time">Maintenant</div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -861,6 +877,24 @@
                     onclick="closeResultModal()"></i></div>
             <div id="resContent" class="result-output"></div>
             <div class="modal-actions"><button class="btn-primary" onclick="closeResultModal()">Fermer</button></div>
+        </div>
+    </div>
+
+    <!-- INPUT MODAL -->
+    <div class="modal" id="inputModal">
+        <div class="modal-content">
+            <div class="modal-header">Paramètres de Scan <i class="ri-close-line close-icon"
+                    onclick="cancelInput()"></i></div>
+            <div class="form-group">
+                <label style="color:#aaa; font-size:0.9rem; margin-bottom:5px; display:block;">Cible Du Scan</label>
+                <input type="text" id="targetIp" placeholder="ex: 192.168.1.10 ou google.com"
+                    onkeydown="if(event.key==='Enter') submitInput()">
+            </div>
+            <div class="modal-actions">
+                <button onclick="cancelInput()"
+                    style="background:none; border:1px solid #555; color:white; padding:8px 16px; border-radius:6px; cursor:pointer;">Annuler</button>
+                <button class="btn-primary" onclick="submitInput()">Lancer le Scan</button>
+            </div>
         </div>
     </div>
 
