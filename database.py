@@ -35,6 +35,7 @@ def init_db():
         if cur.fetchone()[0] == 0:
             conn.execute("INSERT INTO hosts (name, ip) VALUES (?, ?)", ('Router (Gateway)', '192.168.1.1'))
             conn.execute("INSERT INTO hosts (name, ip) VALUES (?, ?)", ('Google DNS', '8.8.8.8'))
+            conn.execute("INSERT INTO hosts (name, ip) VALUES (?, ?)", ('Cloudflare DNS', '1.1.1.1'))
             conn.execute("INSERT INTO hosts (name, ip) VALUES (?, ?)", ('Localhost', '127.0.0.1'))
             print("Database initialized with default hosts.")
             
