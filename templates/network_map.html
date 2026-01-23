@@ -95,19 +95,22 @@
                 let edges = [];
 
                 // Central Node (You/Router)
-                nodes.push({ id: 'GW', label: 'Gateway\n(Router)', shape: 'image', image: 'https://cdn-icons-png.flaticon.com/512/3631/3631553.png', size: 40 });
+                nodes.push({ id: 'GW', label: 'Gateway\n(Router)', shape: 'dot', size: 30, color: '#00e676' });
 
                 devices.forEach((d, index) => {
                     let label = d.ip + "\n" + (d.vendor || "Unknown");
                     let id = index + 1;
 
-                    // Specific icon for Raspberry Pi or others if detected
-                    let img = 'https://cdn-icons-png.flaticon.com/512/2885/2885453.png'; // PC icon
-                    if (d.vendor && d.vendor.includes("Raspberry")) img = 'https://cdn-icons-png.flaticon.com/512/3559/3559818.png';
-
-                    nodes.push({ id: id, label: label, shape: 'image', image: img });
+                    // Simple dot shape
+                    nodes.push({ id: id, label: label, shape: 'dot', size: 15, color: '#2196f3' });
                     edges.push({ from: 'GW', to: id });
                 });
+
+                if (nodes.length === 1) {
+                    // Dummy node if scan is empty so user sees SOMETHING
+                    nodes.push({ id: 999, label: 'Your PC\n(Local)', shape: 'dot', size: 15, color: '#ff5252' });
+                    edges.push({ from: 'GW', to: 999 });
+                }
 
                 // Create Network
                 let container = document.getElementById('mynetwork');
@@ -116,10 +119,10 @@
                     nodes: {
                         font: { color: '#ffffff' },
                         borderWidth: 2,
-                        color: { border: '#00e676', background: '#1a1d2d' }
                     },
                     edges: { color: '#2d3248', width: 2 },
-                    physics: { stabilization: true }
+                    physics: { stabilization: true },
+                    height: '100%' // Force height
                 };
 
                 new vis.Network(container, data, options);
