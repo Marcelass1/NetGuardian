@@ -15,19 +15,23 @@ database.init_db()
 engine = NetworkEngine()
 ACCESS_LOGS = []
 
+import socket
+
 # Runtime state storage (not in DB)
 # Key: host_id, Value: {'status': 'Checking...', 'history': [], 'last_check': ''}
 HOST_STATE = {} 
+# Key: service_id, Value: "UP" | "DOWN"
+SERVICE_STATE = {}
 
-def log_access(username, success, ip):
-    status = "SUCCESS" if success else "FAILED"
-    ACCESS_LOGS.insert(0, {
-        "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "user": username,
-        "status": status,
-        "ip": ip
-    })
-    if len(ACCESS_LOGS) > 50: ACCESS_LOGS.pop()
+def check_port(ip, port):
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(1) # Fast timeout
+        result = sock.connect_ex((ip, port))
+        sock.close()
+        return result == 0
+    except:
+        return False
 
 def monitor_loop():
     while True:
@@ -56,6 +60,13 @@ def monitor_loop():
             # Add sparkline data
             HOST_STATE[hid]['history'].append(1 if is_up else 0)
             if len(HOST_STATE[hid]['history']) > 20: HOST_STATE[hid]['history'].pop(0)
+
+            # Check Services for this host
+            services = database.get_services(hid)
+            for svc in services:
+                sid = svc['id']
+                port_open = check_port(ip, svc['port'])
+                SERVICE_STATE[sid] = "UP" if port_open else "DOWN"
 
         # Cleanup state for deleted hosts
         current_ids = [h['id'] for h in db_hosts]
@@ -99,18 +110,36 @@ def api_status():
     # Merge DB config with Runtime State
     db_hosts = database.get_hosts()
     response = []
+    
+    # Calculate global warning count
+    warnings = 0
+    
     for h in db_hosts:
         hid = h['id']
         state = HOST_STATE.get(hid, {'status': 'Pending', 'history': [], 'last_check': '-'})
+        
+        # Get services and their status
+        services = database.get_services(hid)
+        service_data = []
+        for svc in services:
+            sid = svc['id']
+            status = SERVICE_STATE.get(sid, "Checking...")
+            if status == "DOWN": warnings += 1
+            service_data.append({
+                "id": sid, "name": svc['name'], "port": svc['port'], "status": status
+            })
+            
         response.append({
             "id": hid,
             "name": h['name'],
             "ip": h['ip'],
             "status": state['status'],
             "history": state['history'],
-            "last_check": state['last_check']
+            "last_check": state['last_check'],
+            "services": service_data
         })
-    return jsonify(response)
+        
+    return jsonify({"hosts": response, "warnings": warnings})
 
 @app.route('/api/host', methods=['POST'])
 def add_host():
@@ -128,6 +157,22 @@ def add_host():
 def delete_host(host_id):
     database.delete_host(host_id)
     return jsonify({"message": "Host deleted"}), 200
+
+@app.route('/api/service', methods=['POST'])
+def add_service():
+    data = request.json
+    host_id = data.get('host_id')
+    port = data.get('port')
+    name = data.get('name')
+    if host_id and port and name:
+        if database.add_service(host_id, int(port), name):
+            return jsonify({"message": "Service added"}), 201
+    return jsonify({"message": "Error adding service"}), 400
+
+@app.route('/api/service/<int:service_id>', methods=['DELETE'])
+def delete_service(service_id):
+    database.delete_service(service_id)
+    return jsonify({"message": "Service deleted"}), 200
 
 @app.route('/map')
 def network_map():

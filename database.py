@@ -19,6 +19,15 @@ def init_db():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS services (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                host_id INTEGER NOT NULL,
+                port INTEGER NOT NULL,
+                name TEXT NOT NULL,
+                FOREIGN KEY(host_id) REFERENCES hosts(id) ON DELETE CASCADE
+            )
+        ''')
         
         # Seed initial data if empty
         cur = conn.execute("SELECT count(*) FROM hosts")
@@ -50,4 +59,23 @@ def delete_host(host_id):
     conn = get_db_connection()
     with conn:
         conn.execute("DELETE FROM hosts WHERE id = ?", (host_id,))
+    conn.close()
+
+def add_service(host_id, port, name):
+    conn = get_db_connection()
+    with conn:
+        conn.execute("INSERT INTO services (host_id, port, name) VALUES (?, ?, ?)", (host_id, port, name))
+    conn.close()
+    return True
+
+def get_services(host_id):
+    conn = get_db_connection()
+    services = conn.execute("SELECT * FROM services WHERE host_id = ?", (host_id,)).fetchall()
+    conn.close()
+    return [dict(ix) for ix in services]
+
+def delete_service(service_id):
+    conn = get_db_connection()
+    with conn:
+        conn.execute("DELETE FROM services WHERE id = ?", (service_id,))
     conn.close()

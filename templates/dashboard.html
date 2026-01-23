@@ -292,86 +292,138 @@
             margin-top: 20px;
         }
     </style>
-    <script>
-        async function update() {
-            let res = await fetch('/api/status');
-            let data = await res.json();
-            const grid = document.getElementById('grid');
+    async function update() {
+    let res = await fetch('/api/status');
+    let data = await res.json();
+    const grid = document.getElementById('grid');
+    const warnings = data.warnings || 0;
 
-            // Simple diff to avoid full redraw blinking if possible, but for now full redraw is safer
-            grid.innerHTML = '';
-            data.forEach(t => {
-                let statusClass = t.status === 'UP' ? 'up' : 'down';
-                let icon = t.status === 'UP' ? 'ri-checkbox-circle-fill' : 'ri-close-circle-fill';
-                grid.innerHTML += `
-                <div class="card">
-                    <button class="delete-btn" onclick="deleteHost(${t.id})"><i class="ri-delete-bin-line"></i></button>
-                    <div class="card-info">
-                        <h3>${t.name}</h3>
-                        <p>${t.ip}</p>
-                    </div>
-                    <div class="status-badge ${statusClass}">
-                        <i class="${icon}"></i> ${t.status}
-                    </div>
-                </div>`;
-            });
+    // Update Services Warning Card if it exists (or add it nearby, but for now we trust the layout)
+    // Creating a dedicated warnings dash item if desired, but sticking to existing grid for now.
+
+    grid.innerHTML = '';
+
+    // Add a Summary Card for Services
+    if(warnings > 0) {
+    grid.innerHTML += `
+    <div class="card" style="border-color: var(--danger);">
+        <div class="card-info">
+            <h3><i class="ri-alert-fill" style="color:var(--danger)"></i> Services Warning</h3>
+            <p>${warnings} service(s) down</p>
+        </div>
+        <div class="status-badge down">
+            <i class="ri-alarm-warning-fill"></i> CRITICAL
+        </div>
+    </div>`;
+    }
+
+    data.hosts.forEach(t => {
+    let statusClass = t.status === 'UP' ? 'up' : 'down';
+    let icon = t.status === 'UP' ? 'ri-checkbox-circle-fill' : 'ri-close-circle-fill';
+
+    let servicesHtml = '<div style="margin-top:10px; border-top:1px solid #333; padding-top:10px;">';
+        if(t.services) {
+        t.services.forEach(s => {
+        let sColor = s.status === 'UP' ? '#00e676' : '#ff5252';
+        servicesHtml += `
+        <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:4px;">
+            <span>${s.name} (${s.port})</span>
+            <span style="color:${sColor}; font-weight:bold; cursor:pointer;" onclick="deleteService(${s.id})">
+                ${s.status} <i class="ri-delete-bin-line" style="color:#555;font-size:0.8rem"></i>
+            </span>
+        </div>`;
+        });
         }
+        servicesHtml += `<button onclick="showServiceModal(${t.id})"
+            style="width:100%; margin-top:5px; background:none; border:1px dashed #555; color:#777; cursor:pointer; font-size:0.8rem; border-radius:4px;">+
+            Service</button>`
+        servicesHtml += '
+    </div>';
 
-        async function addHost() {
-            const name = document.getElementById('hName').value;
-            const ip = document.getElementById('hIp').value;
+    grid.innerHTML += `
+    <div class="card">
+        <button class="delete-btn" onclick="deleteHost(${t.id})"><i class="ri-delete-bin-line"></i></button>
+        <div class="card-info">
+            <h3>${t.name}</h3>
+            <p>${t.ip}</p>
+            ${servicesHtml}
+        </div>
+        <div class="status-badge ${statusClass}">
+            <i class="${icon}"></i> ${t.status}
+        </div>
+    </div>`;
+    });
+    }
 
-            if (!name || !ip) return alert("Remplir tous les champs");
+    async function addHost() {
+    const name = document.getElementById('hName').value;
+    const ip = document.getElementById('hIp').value;
+    if (!name || !ip) return alert("Remplir tous les champs");
+    let res = await fetch('/api/host', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: name, ip: ip })
+    });
+    if (res.ok) { closeModal(); update(); document.getElementById('hName').value = '';
+    document.getElementById('hIp').value = ''; }
+    else { alert("Erreur"); }
+    }
 
-            let res = await fetch('/api/host', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: name, ip: ip })
-            });
+    async function deleteHost(id) {
+    if (!confirm("Supprimer cet hôte ?")) return;
+    await fetch('/api/host/' + id, { method: 'DELETE' });
+    update();
+    }
 
-            if (res.ok) {
-                closeModal();
-                update();
-                document.getElementById('hName').value = '';
-                document.getElementById('hIp').value = '';
-            } else {
-                alert("Erreur lors de l'ajout");
-            }
-        }
+    // Service Functions
+    let currentHostId = null;
+    function showServiceModal(hid) { currentHostId = hid; document.getElementById('serviceModal').style.display =
+    'flex'; }
+    function closeServiceModal() { document.getElementById('serviceModal').style.display = 'none'; }
 
-        async function deleteHost(id) {
-            if (!confirm("Supprimer cet hôte ?")) return;
-            await fetch('/api/host/' + id, { method: 'DELETE' });
-            update();
-        }
+    async function addService() {
+    const name = document.getElementById('sName').value;
+    const port = document.getElementById('sPort').value;
+    if (!name || !port) return alert("Champs requis");
 
-        function showModal() { document.getElementById('addModal').style.display = 'flex'; }
-        function closeModal() { document.getElementById('addModal').style.display = 'none'; }
+    await fetch('/api/service', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ host_id: currentHostId, name: name, port: port })
+    });
+    closeServiceModal();
+    update();
+    }
 
-        async function run(url, name) {
-            const out = document.getElementById('output');
-            out.innerHTML = `<div class="log-entry" style="border-color:#555">Exécution: ${name}...</div>` + out.innerHTML;
+    async function deleteService(sid) {
+    if(!confirm("Retirer ce service ?")) return;
+    await fetch('/api/service/'+sid, {method:'DELETE'});
+    update();
+    }
 
-            let body = null;
-            if (url.includes('scan') || url.includes('vuln')) {
-                let ip = prompt("Entrer IP Cible pour " + name + ":");
-                if (!ip) return;
-                body = JSON.stringify({ ip: ip });
-            }
+    function showModal() { document.getElementById('addModal').style.display = 'flex'; }
+    function closeModal() { document.getElementById('addModal').style.display = 'none'; }
 
-            try {
-                let res = await fetch(url, {
-                    method: body ? 'POST' : 'GET', headers: { 'Content-Type': 'application/json' }, body: body
-                });
-                let data = await res.json();
-
-                let result = JSON.stringify(data, null, 2);
-                out.innerHTML = `<div class="log-entry"><strong>${name} Terminé:</strong><pre>${result}</pre></div>` + out.innerHTML;
-            } catch (e) { out.innerHTML = `<div class="log-entry" style="border-color:red">Erreur lors de ${name}</div>` + out.innerHTML; }
-        }
-
-        setInterval(update, 2000);
-        window.onload = update;
+    async function run(url, name) {
+    const out = document.getElementById('output');
+    out.innerHTML = `<div class="log-entry" style="border-color:#555">Exécution: ${name}...</div>` + out.innerHTML;
+    let body = null;
+    if (url.includes('scan') || url.includes('vuln')) {
+    let ip = prompt("Entrer IP Cible pour " + name + ":");
+    if (!ip) return;
+    body = JSON.stringify({ ip: ip });
+    }
+    try {
+    let res = await fetch(url, {
+    method: body ? 'POST' : 'GET', headers: { 'Content-Type': 'application/json' }, body: body
+    });
+    let data = await res.json();
+    let result = JSON.stringify(data, null, 2);
+    out.innerHTML = `<div class="log-entry"><strong>${name} Terminé:</strong>
+        <pre>${result}</pre>
+    </div>` + out.innerHTML;
+    } catch (e) { out.innerHTML = `<div class="log-entry" style="border-color:red">Erreur lors de ${name}</div>` +
+    out.innerHTML; }
+    }
+    setInterval(update, 2000);
+    window.onload = update;
     </script>
 </head>
 
@@ -461,6 +513,24 @@
                 <button onclick="closeModal()"
                     style="background:none; border:1px solid #555; color:white; padding:8px 16px; border-radius:6px; cursor:pointer;">Annuler</button>
                 <button class="btn-primary" onclick="addHost()">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADD SERVICE MODAL -->
+    <div class="modal" id="serviceModal">
+        <div class="modal-content">
+            <div class="modal-header">Ajouter Service</div>
+            <div class="form-group">
+                <input type="text" id="sName" placeholder="Nom (ex: Web, SQL)">
+            </div>
+            <div class="form-group">
+                <input type="number" id="sPort" placeholder="Port (ex: 80, 3306)">
+            </div>
+            <div class="modal-actions">
+                <button onclick="closeServiceModal()"
+                    style="background:none; border:1px solid #555; color:white; padding:8px 16px; border-radius:6px; cursor:pointer;">Annuler</button>
+                <button class="btn-primary" onclick="addService()">Ajouter</button>
             </div>
         </div>
     </div>
