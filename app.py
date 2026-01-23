@@ -14,6 +14,13 @@ database.init_db()
 
 engine = NetworkEngine()
 ACCESS_LOGS = []
+ACTIVITY_LOG = [] # New Global Log
+
+def log_activity(msg, type='info'):
+    timestamp = time.strftime("%H:%M:%S")
+    entry = {'time': timestamp, 'msg': msg, 'type': type}
+    ACTIVITY_LOG.insert(0, entry)
+    if len(ACTIVITY_LOG) > 20: ACTIVITY_LOG.pop()
 
 import socket
 
@@ -51,8 +58,10 @@ def monitor_loop():
             
             # Log incident if status changed to DOWN
             # Only log if we had a previous status (not just 'Checking...')
-            if HOST_STATE[hid]['status'] == "UP" and new_status == "DOWN":
-                engine.log_incident(host['name'])
+            # Log incident if status changed
+            if HOST_STATE[hid]['status'] != 'Checking...' and HOST_STATE[hid]['status'] != new_status:
+                log_activity(f"Host {host['name']} is now {new_status}", 'success' if is_up else 'error')
+                if new_status == "DOWN": engine.log_incident(host['name'])
                 
             HOST_STATE[hid]['status'] = new_status
             HOST_STATE[hid]['last_check'] = time.strftime("%H:%M:%S")
@@ -69,8 +78,10 @@ def monitor_loop():
                 status = "UP" if port_open else "DOWN"
                 
                 # Update DB only if changed (optional optimization, but we just write for now to be safe)
+                # Update DB only if changed
                 if svc.get('status') != status:
                     database.update_service_status(sid, status)
+                    log_activity(f"Service {svc['name']} on {host['name']} is {status}", 'success' if port_open else 'error')
 
         # Cleanup state for deleted hosts
         current_ids = [h['id'] for h in db_hosts]
@@ -144,7 +155,7 @@ def api_status():
             "services": service_data
         })
         
-    return jsonify({"hosts": response, "warnings": warnings})
+    return jsonify({"hosts": response, "warnings": warnings, "recent_activity": ACTIVITY_LOG})
 
 @app.route('/api/host', methods=['POST'])
 def add_host():
