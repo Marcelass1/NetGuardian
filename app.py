@@ -1,6 +1,7 @@
 from flask import Flask, render_template, jsonify, request, send_file, redirect, session, url_for
 from network_engine import NetworkEngine
 from report_generator import generate_weekly_report
+import database
 import threading
 import time
 from datetime import datetime
@@ -8,8 +9,15 @@ from datetime import datetime
 app = Flask(__name__)
 app.secret_key = 'superdev_secret_key'
 
+# Initialize Database
+database.init_db()
+
 engine = NetworkEngine()
 ACCESS_LOGS = []
+
+# Runtime state storage (not in DB)
+# Key: host_id, Value: {'status': 'Checking...', 'history': [], 'last_check': ''}
+HOST_STATE = {} 
 
 def log_access(username, success, ip):
     status = "SUCCESS" if success else "FAILED"
@@ -21,31 +29,41 @@ def log_access(username, success, ip):
     })
     if len(ACCESS_LOGS) > 50: ACCESS_LOGS.pop()
 
-TARGETS = [
-    {"name": "Router (Gateway)", "ip": "192.168.1.1", "status": "Checking...", "history": []},
-    {"name": "Google DNS", "ip": "8.8.8.8", "status": "Checking...", "history": []},
-    {"name": "Localhost", "ip": "127.0.0.1", "status": "Checking...", "history": []}
-]
-
 def monitor_loop():
     while True:
-        for target in TARGETS:
-            is_up = engine.ping_host(target['ip'])
+        # Fetch current config from DB
+        db_hosts = database.get_hosts()
+        
+        for host in db_hosts:
+            hid = host['id']
+            ip = host['ip']
+            
+            # Initialize state if new host
+            if hid not in HOST_STATE:
+                HOST_STATE[hid] = {'status': 'Checking...', 'history': [], 'last_check': '-'}
+
+            is_up = engine.ping_host(ip)
             new_status = "UP" if is_up else "DOWN"
             
             # Log incident if status changed to DOWN
-            if target['status'] == "UP" and new_status == "DOWN":
-                engine.log_incident(target['name'])
+            # Only log if we had a previous status (not just 'Checking...')
+            if HOST_STATE[hid]['status'] == "UP" and new_status == "DOWN":
+                engine.log_incident(host['name'])
                 
-            target['status'] = new_status
-            target['last_check'] = time.strftime("%H:%M:%S")
+            HOST_STATE[hid]['status'] = new_status
+            HOST_STATE[hid]['last_check'] = time.strftime("%H:%M:%S")
             
             # Add sparkline data
-            # 1 = UP, 0 = DOWN
-            target['history'].append(1 if is_up else 0)
-            if len(target['history']) > 20: target['history'].pop(0)
+            HOST_STATE[hid]['history'].append(1 if is_up else 0)
+            if len(HOST_STATE[hid]['history']) > 20: HOST_STATE[hid]['history'].pop(0)
+
+        # Cleanup state for deleted hosts
+        current_ids = [h['id'] for h in db_hosts]
+        keys_to_remove = [k for k in HOST_STATE if k not in current_ids]
+        for k in keys_to_remove:
+            del HOST_STATE[k]
             
-        time.sleep(2) # Faster checking for smoother UI
+        time.sleep(2) 
 
 t = threading.Thread(target=monitor_loop, daemon=True)
 t.start()
@@ -54,7 +72,7 @@ t.start()
 def home():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
-    return render_template('dashboard.html', targets=TARGETS, logs=ACCESS_LOGS)
+    return render_template('dashboard.html', logs=ACCESS_LOGS)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -78,7 +96,38 @@ def logout():
 
 @app.route('/api/status')
 def api_status():
-    return jsonify(TARGETS)
+    # Merge DB config with Runtime State
+    db_hosts = database.get_hosts()
+    response = []
+    for h in db_hosts:
+        hid = h['id']
+        state = HOST_STATE.get(hid, {'status': 'Pending', 'history': [], 'last_check': '-'})
+        response.append({
+            "id": hid,
+            "name": h['name'],
+            "ip": h['ip'],
+            "status": state['status'],
+            "history": state['history'],
+            "last_check": state['last_check']
+        })
+    return jsonify(response)
+
+@app.route('/api/host', methods=['POST'])
+def add_host():
+    data = request.json
+    name = data.get('name')
+    ip = data.get('ip')
+    if name and ip:
+        if database.add_host(name, ip):
+            return jsonify({"message": "Host added"}), 201
+        else:
+            return jsonify({"message": "IP already exists"}), 400
+    return jsonify({"message": "Invalid data"}), 400
+
+@app.route('/api/host/<int:host_id>', methods=['DELETE'])
+def delete_host(host_id):
+    database.delete_host(host_id)
+    return jsonify({"message": "Host deleted"}), 200
 
 @app.route('/api/health')
 def api_health():

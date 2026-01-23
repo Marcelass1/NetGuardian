@@ -21,7 +21,7 @@ echo    - Access the Dashboard at: http://localhost:5000
 echo    - Login: admin / admin
 echo.
 
-"C:\Users\dell\AppData\Local\Programs\Python\Python312\python.exe" app.py
+python app.py
 if %errorlevel% neq 0 (
     echo.
     echo [ERROR] Application crashed.

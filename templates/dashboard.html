@@ -71,13 +71,38 @@
         }
 
         /* STATUS CARDS */
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
         .section-title {
             font-size: 1.1rem;
             color: var(--text-sub);
-            margin-bottom: 20px;
             font-weight: 500;
             text-transform: uppercase;
             letter-spacing: 1px;
+            margin: 0;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: 0.2s;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
         }
 
         .status-grid {
@@ -96,6 +121,7 @@
             justify-content: space-between;
             align-items: center;
             transition: 0.3s;
+            position: relative;
         }
 
         .card:hover {
@@ -134,6 +160,26 @@
 
         .down {
             background: rgba(255, 82, 82, 0.1);
+            color: var(--danger);
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: var(--text-sub);
+            background: none;
+            border: none;
+            cursor: pointer;
+            opacity: 0;
+            transition: 0.2s;
+        }
+
+        .card:hover .delete-btn {
+            opacity: 1;
+        }
+
+        .delete-btn:hover {
             color: var(--danger);
         }
 
@@ -195,6 +241,55 @@
             border-left: 3px solid var(--primary);
             padding-left: 10px;
         }
+
+        /* MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            width: 400px;
+        }
+
+        .modal-header {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: #0f111a;
+            color: white;
+            box-sizing: border-box; /* Fix padding issue */
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
     </style>
     <script>
         async function update() {
@@ -202,12 +297,14 @@
             let data = await res.json();
             const grid = document.getElementById('grid');
 
+            // Simple diff to avoid full redraw blinking if possible, but for now full redraw is safer
             grid.innerHTML = '';
             data.forEach(t => {
                 let statusClass = t.status === 'UP' ? 'up' : 'down';
                 let icon = t.status === 'UP' ? 'ri-checkbox-circle-fill' : 'ri-close-circle-fill';
                 grid.innerHTML += `
                 <div class="card">
+                    <button class="delete-btn" onclick="deleteHost(${t.id})"><i class="ri-delete-bin-line"></i></button>
                     <div class="card-info">
                         <h3>${t.name}</h3>
                         <p>${t.ip}</p>
@@ -218,6 +315,37 @@
                 </div>`;
             });
         }
+        
+        async function addHost() {
+            const name = document.getElementById('hName').value;
+            const ip = document.getElementById('hIp').value;
+            
+            if(!name || !ip) return alert("Remplir tous les champs");
+            
+            let res = await fetch('/api/host', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({name: name, ip: ip})
+            });
+            
+            if(res.ok) {
+                closeModal();
+                update();
+                document.getElementById('hName').value = '';
+                document.getElementById('hIp').value = '';
+            } else {
+                alert("Erreur lors de l'ajout");
+            }
+        }
+
+        async function deleteHost(id) {
+            if(!confirm("Supprimer cet hôte ?")) return;
+            await fetch('/api/host/' + id, { method: 'DELETE' });
+            update();
+        }
+
+        function showModal() { document.getElementById('addModal').style.display = 'flex'; }
+        function closeModal() { document.getElementById('addModal').style.display = 'none'; }
 
         async function run(url, name) {
             const out = document.getElementById('output');
@@ -256,13 +384,17 @@
         </div>
 
         <!-- STATUS -->
-        <div class="section-title">ÉTAT DU SYSTÈME</div>
+        <div class="header-row">
+            <div class="section-title">ÉTAT DU SYSTÈME</div>
+            <button class="btn-primary" onclick="showModal()"><i class="ri-add-line"></i> Ajouter Hôte</button>
+        </div>
+        
         <div class="status-grid" id="grid">
             <!-- Filled by JS -->
         </div>
 
         <!-- TOOLS -->
-        <div class="section-title">OUTILS D'ADMINISTRATION</div>
+        <div class="section-title" style="margin-bottom: 20px;">OUTILS D'ADMINISTRATION</div>
         <div class="tools-grid">
             <div class="tool-card" onclick="run('/api/scan/arp', 'Scan Réseau ARP')">
                 <i class="ri-radar-fill tool-icon"></i>
@@ -302,6 +434,23 @@
             <div class="log-entry" style="border-color:#555">Système Prêt. En attente de commande...</div>
         </div>
 
+    </div>
+
+    <!-- ADD HOST MODAL -->
+    <div class="modal" id="addModal">
+        <div class="modal-content">
+            <div class="modal-header">Ajouter un Hôte</div>
+            <div class="form-group">
+                <input type="text" id="hName" placeholder="Nom (ex: Serveur Web)">
+            </div>
+            <div class="form-group">
+                <input type="text" id="hIp" placeholder="IP (ex: 192.168.1.50)">
+            </div>
+            <div class="modal-actions">
+                <button onclick="closeModal()" style="background:none; border:1px solid #555; color:white; padding:8px 16px; border-radius:6px; cursor:pointer;">Annuler</button>
+                <button class="btn-primary" onclick="addHost()">Enregistrer</button>
+            </div>
+        </div>
     </div>
 
 </body>
