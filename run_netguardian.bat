@@ -24,6 +24,11 @@ echo.
 python app.py
 if %errorlevel% neq 0 (
     echo.
+    echo    - 'python' command checked failed. Trying 'py' launcher...
+    py app.py
+)
+if %errorlevel% neq 0 (
+    echo.
     echo [ERROR] Application crashed.
 )
 
