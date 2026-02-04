@@ -194,7 +194,7 @@ def delete_service(id):
 @app.route('/api/scan/arp')
 def scan_arp():
     if not session.get('logged_in'): return jsonify({'error': 'Unauthorized'}), 401
-    res = engine.scan_network()
+    res = engine.get_connected_devices()
     return jsonify(res)
 
 @app.route('/api/speedtest')
