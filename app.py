@@ -200,7 +200,7 @@ def scan_arp():
 @app.route('/api/speedtest')
 def speed_test():
     if not session.get('logged_in'): return jsonify({'error': 'Unauthorized'}), 401
-    res = engine.run_speedtest()
+    res = engine.measure_speed()
     return jsonify(res)
 
 @app.route('/api/scan/ports', methods=['POST'])
